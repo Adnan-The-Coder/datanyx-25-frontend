@@ -140,7 +140,7 @@ export default function PredictionsTab() {
   };
 
   // Get disease badge color
-  const getDiseaseColor = (prediction: DiseaseePrediction): string => {
+  const getDiseaseColor = (prediction: DiseaseePrediction): "destructive" | "secondary" | "default" | "outline" => {
     if (prediction.error) return 'destructive';
     return prediction.prediction === 1 ? 'destructive' : 'secondary';
   };

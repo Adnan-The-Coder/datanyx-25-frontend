@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { OverviewTab } from "@/components/dashboard/tabs/OverviewTab";
 import { PatientInflowTab } from "@/components/dashboard/tabs/PatientInflowTab";
@@ -57,6 +57,14 @@ export function HospitalDashboard() {
   const activeMeta = useMemo(() => tabs.find((tab) => tab.id === activeTab), [activeTab]);
 
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [user, setUser] = useState<{name: string, email?: string, image?: string, age?: string, gender?: string, weight?: string} | null>(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("grania_user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#f8fafc] flex relative">
@@ -93,24 +101,24 @@ export function HospitalDashboard() {
                   <div className="grid grid-cols-2 gap-6">
                     <div className="p-4 bg-white rounded-2xl border border-blue-50 shadow-sm">
                       <p className="text-sm text-slate-500 uppercase tracking-wide font-bold mb-1">Name</p>
-                      <p className="text-xl font-bold text-[#03142d]">John Doe</p>
+                      <p className="text-xl font-bold text-[#03142d]">{user?.name || "John Doe"}</p>
                     </div>
                     <div className="p-4 bg-white rounded-2xl border border-blue-50 shadow-sm">
                       <p className="text-sm text-slate-500 uppercase tracking-wide font-bold mb-1">Age</p>
-                      <p className="text-xl font-bold text-[#03142d]">65</p>
+                      <p className="text-xl font-bold text-[#03142d]">{user?.age || "65"}</p>
                     </div>
                     <div className="p-4 bg-white rounded-2xl border border-blue-50 shadow-sm">
                       <p className="text-sm text-slate-500 uppercase tracking-wide font-bold mb-1">Gender</p>
-                      <p className="text-xl font-bold text-[#03142d]">Male</p>
+                      <p className="text-xl font-bold text-[#03142d] capitalize">{user?.gender || "Male"}</p>
                     </div>
                     <div className="p-4 bg-white rounded-2xl border border-blue-50 shadow-sm">
                       <p className="text-sm text-slate-500 uppercase tracking-wide font-bold mb-1">Weight</p>
-                      <p className="text-xl font-bold text-[#03142d]">70 kg</p>
+                      <p className="text-xl font-bold text-[#03142d]">{user?.weight ? `${user.weight} kg` : "70 kg"}</p>
                     </div>
                   </div>
                   <div className="p-4 bg-white rounded-2xl border border-blue-50 shadow-sm">
                     <p className="text-sm text-slate-500 uppercase tracking-wide font-bold mb-1">Email</p>
-                    <p className="text-xl font-bold text-[#03142d]">john.doe@example.com</p>
+                    <p className="text-xl font-bold text-[#03142d]">{user?.email || "john.doe@example.com"}</p>
                   </div>
                 </div>
               </div>
@@ -207,13 +215,16 @@ export function HospitalDashboard() {
           >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden border-2 border-white shadow-sm">
-                {/* Placeholder for Google Auth PFP */}
-                <div className="w-full h-full bg-gradient-to-br from-blue-400 to-cyan-300 flex items-center justify-center text-white font-bold text-sm">
-                  JD
-                </div>
+                {user?.image ? (
+                  <img src={user.image} alt={user.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-blue-400 to-cyan-300 flex items-center justify-center text-white font-bold text-sm">
+                    {user?.name ? user.name.charAt(0).toUpperCase() : "JD"}
+                  </div>
+                )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-slate-700 truncate group-hover:text-[#2f80ed] transition-colors">John Doe</p>
+                <p className="text-sm font-bold text-slate-700 truncate group-hover:text-[#2f80ed] transition-colors">{user?.name || "John Doe"}</p>
                 <p className="text-xs text-slate-500 truncate">View Profile</p>
               </div>
               <div className="text-slate-400 group-hover:translate-x-1 transition-transform">

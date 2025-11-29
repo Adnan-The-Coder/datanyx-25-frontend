@@ -1,55 +1,23 @@
-import { staffing } from "@/components/dashboard/tabs/data";
+"use client";
 
-export function StaffAllocationTab() {
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { UserCog } from 'lucide-react';
+
+export default function StaffAllocationTab() {
   return (
-    <section className="grid tri fade-in">
-      <article className="card">
-        <header className="section-head">
-          <p className="eyebrow">Optimizer</p>
-          <h3>Recommended staffing</h3>
-        </header>
-        <div className="stack">
-          {staffing.recommended.map((rec) => (
-            <div key={rec.dept} className="recommendation fade-in fade-in-1">
-              <strong>{rec.dept}</strong>
-              <p>
-                {rec.doctors} doctors · {rec.nurses} nurses
-              </p>
-              <small>{rec.rationale}</small>
-            </div>
-          ))}
-        </div>
-      </article>
-      <article className="card">
-        <header className="section-head">
-          <p className="eyebrow">Attention</p>
-          <h3>Understaffed</h3>
-        </header>
-        <div className="stack">
-          {staffing.understaffed.map((item) => (
-            <div key={item.dept} className="alert-row fade-in fade-in-2">
-              <p>{item.dept}</p>
-              <small>{item.gap}</small>
-              <span>{item.note}</span>
-            </div>
-          ))}
-        </div>
-      </article>
-      <article className="card">
-        <header className="section-head">
-          <p className="eyebrow">Shift adjustments</p>
-          <h3>Suggested moves</h3>
-        </header>
-        <ul className="simple-list">
-          {staffing.adjustments.map((adj) => (
-            <li key={adj} className="fade-in fade-in-3">
-              {adj}
-            </li>
-          ))}
-        </ul>
-      </article>
-    </section>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <UserCog className="h-5 w-5" />
+          Staff Allocation Management
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-gray-600">
+          Staff allocation and scheduling system coming soon...
+        </p>
+      </CardContent>
+    </Card>
   );
 }
-
-

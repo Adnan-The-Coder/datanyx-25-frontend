@@ -1,22 +1,23 @@
-import { simulations } from "@/components/dashboard/tabs/data";
+"use client";
 
-export function SimulationsTab() {
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Zap } from 'lucide-react';
+
+export default function SimulationsTab() {
   return (
-    <section className="grid tri fade-in">
-      {simulations.map((sim, idx) => (
-        <article key={sim.scenario} className={`card fade-in fade-in-${idx + 1}`}>
-          <p className="eyebrow">What-if</p>
-          <h3>{sim.scenario}</h3>
-          <ul className="simple-list">
-            {sim.impact.map((line) => (
-              <li key={line}>{line}</li>
-            ))}
-          </ul>
-          <button className="secondary full-width">Generate playbook</button>
-        </article>
-      ))}
-    </section>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Zap className="h-5 w-5" />
+          Scenario Simulations
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-gray-600">
+          Scenario planning and simulation modeling coming soon...
+        </p>
+      </CardContent>
+    </Card>
   );
 }
-
-

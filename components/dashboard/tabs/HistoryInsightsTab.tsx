@@ -1,20 +1,23 @@
-import { historyInsights } from "@/components/dashboard/tabs/data";
+"use client";
 
-export function HistoryInsightsTab() {
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { History } from 'lucide-react';
+
+export default function HistoryInsightsTab() {
   return (
-    <section className="grid tri fade-in">
-      {historyInsights.map((item, idx) => (
-        <article key={item.label} className={`card fade-in fade-in-${idx + 1}`}>
-          <p className="eyebrow">{item.label}</p>
-          <h3>{item.detail}</h3>
-          <p className="muted">{item.delta}</p>
-          <div className="trendline">
-            <span />
-          </div>
-        </article>
-      ))}
-    </section>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <History className="h-5 w-5" />
+          Historical Data & Insights
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-gray-600">
+          Historical analytics and trend insights coming soon...
+        </p>
+      </CardContent>
+    </Card>
   );
 }
-
-

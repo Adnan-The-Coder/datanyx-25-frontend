@@ -1,26 +1,23 @@
-import { alerts } from "@/components/dashboard/tabs/data";
+"use client";
 
-export function AlertsSurgesTab() {
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertTriangle } from 'lucide-react';
+
+export default function AlertsSurgesTab() {
   return (
-    <section className="card fade-in">
-      <header className="section-head">
-        <p className="eyebrow">Situational awareness</p>
-        <h3>Upcoming events</h3>
-      </header>
-      <div className="stack">
-        {alerts.map((alert, idx) => (
-          <div key={alert.label} className={`alert-banner fade-in fade-in-${idx + 1}`}>
-            <span className="badge">{alert.type}</span>
-            <div>
-              <p>{alert.label}</p>
-              <small>{alert.note}</small>
-            </div>
-            <p className="muted">{alert.window}</p>
-          </div>
-        ))}
-      </div>
-    </section>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <AlertTriangle className="h-5 w-5" />
+          Alerts & Capacity Surges
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-gray-600">
+          Alert management and surge capacity monitoring coming soon...
+        </p>
+      </CardContent>
+    </Card>
   );
 }
-
-

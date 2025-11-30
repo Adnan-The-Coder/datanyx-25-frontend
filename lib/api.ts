@@ -1,11 +1,12 @@
 /**
  * API Service for Disease Prediction ML Backend
- * Integrates with FastAPI backend running on localhost:8000
+ * Integrates with FastAPI backend deployed on AWS Elastic Beanstalk
  */
 
 import { useState, useEffect } from 'react';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+// Production API Base URL
+const API_BASE_URL = 'http://python-fast-api-datanyx.eba-f3wni6xk.ap-south-1.elasticbeanstalk.com';
 
 // Types for API responses
 export interface ApiResponse<T> {
@@ -44,12 +45,8 @@ export interface DiseaseePrediction {
   prediction: number;
   status: 'Present' | 'Absent';
   model_accuracy?: number;
+  confidence?: number;
   error?: string;
-}
-
-export interface PredictionResponse {
-  patient_features: number[];
-  predictions: Record<string, DiseaseePrediction>;
 }
 
 export interface ApiInfo {
@@ -59,7 +56,43 @@ export interface ApiInfo {
   total_diseases: number;
   diseases: string[];
   model_status: Record<string, ModelInfo>;
+  endpoints: {
+    prediction: string;
+    batch_prediction: string;
+    model_info: string;
+    health: string;
+  };
+}
+
+export interface RootResponse {
+  message: string;
+  version: string;
+  description: string;
   endpoints: Record<string, string>;
+  diseases: string[];
+  timestamp: string;
+}
+
+export interface BatchPatient {
+  features: number[];
+}
+
+export interface BatchPredictionRequest {
+  patients: BatchPatient[];
+}
+
+export interface BatchPredictionResponse {
+  results: {
+    patient_features: number[];
+    predictions: Record<string, DiseaseePrediction>;
+  }[];
+  total_patients: number;
+  processing_time?: number;
+}
+
+export interface PredictionResponse {
+  patient_features: number[];
+  predictions: Record<string, DiseaseePrediction>;
 }
 
 // Disease types
@@ -247,45 +280,190 @@ export class PatientDataUtils {
       6.0,   // severity
       4.0,   // progression
       7.0,   // medication_response
-      5.0,   // exercise_tolerance
+      8.0,   // exercise_tolerance
       2.5,   // stress_impact
-      70.0   // health_score
+      75.0   // health_score
+    ];
+  }
+
+  /**
+   * Generate random realistic patient data
+   */
+  static generateRandomPatient(): number[] {
+    return [
+      Math.random() * 40 + 30,    // age: 30-70
+      Math.random() * 10 + 20,    // bmi: 20-30
+      Math.random() * 8 + 0.5,    // symptom_duration: 0.5-8.5
+      Math.random() * 8 + 1,      // severity: 1-9
+      Math.random() * 8 + 1,      // progression: 1-9
+      Math.random() * 7 + 2,      // medication_response: 2-9
+      Math.random() * 7 + 2,      // exercise_tolerance: 2-9
+      Math.random() * 4 + 0.5,    // stress_impact: 0.5-4.5
+      Math.random() * 30 + 60     // health_score: 60-90
     ];
   }
 
   /**
    * Format features for display
    */
-  static formatFeatures(features: number[]): Record<string, number> {
-    const result: Record<string, number> = {};
+  static formatFeatures(features: number[]): Record<string, string> {
+    const formatted: Record<string, string> = {};
     FEATURE_NAMES.forEach((name, index) => {
-      result[name] = features[index] || 0;
+      if (features[index] !== undefined) {
+        formatted[name] = features[index].toFixed(1);
+      }
     });
-    return result;
+    return formatted;
+  }
+
+  /**
+   * Parse features from form data
+   */
+  static parseFormData(formData: Record<string, string>): number[] {
+    return FEATURE_NAMES.map(name => parseFloat(formData[name]) || 0);
   }
 }
 
-// Hook for API status monitoring
+// React hooks for API integration
 export function useApiStatus() {
-  const [isConnected, setIsConnected] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isConnected, setIsConnected] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [lastChecked, setLastChecked] = useState<Date | null>(null);
 
-  useEffect(() => {
-    const checkConnection = async () => {
-      setIsLoading(true);
+  const checkConnection = async () => {
+    setIsLoading(true);
+    try {
       const connected = await DiseaseApi.testConnection();
       setIsConnected(connected);
+      setLastChecked(new Date());
+    } catch (error) {
+      setIsConnected(false);
+    } finally {
       setIsLoading(false);
-    };
+    }
+  };
 
+  useEffect(() => {
     checkConnection();
-    // Check every 30 seconds
+    // Check connection every 30 seconds
     const interval = setInterval(checkConnection, 30000);
-
     return () => clearInterval(interval);
   }, []);
 
-  return { isConnected, isLoading };
+  return {
+    isConnected,
+    isLoading,
+    lastChecked,
+    checkConnection,
+  };
 }
 
-export default DiseaseApi;
+export function useModelsStatus() {
+  const [models, setModels] = useState<ModelsResponse | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchModels = async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const response = await DiseaseApi.getModels();
+      if (response.error) {
+        setError(response.error);
+      } else {
+        setModels(response.data || null);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch models');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchModels();
+  }, []);
+
+  return {
+    models,
+    isLoading,
+    error,
+    refetch: fetchModels,
+  };
+}
+
+export function usePrediction() {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [lastPrediction, setLastPrediction] = useState<PredictionResponse | null>(null);
+
+  const predict = async (features: number[]): Promise<PredictionResponse | null> => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Validate features first
+      const validationErrors = PatientDataUtils.validateFeatures(features);
+      if (validationErrors.length > 0) {
+        setError(validationErrors.join(', '));
+        return null;
+      }
+
+      const response = await DiseaseApi.predictAllDiseases(features);
+      if (response.error) {
+        setError(response.error);
+        return null;
+      }
+
+      const prediction = response.data;
+      setLastPrediction(prediction || null);
+      return prediction || null;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Prediction failed';
+      setError(errorMessage);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const predictSingle = async (disease: Disease, features: number[]) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const validationErrors = PatientDataUtils.validateFeatures(features);
+      if (validationErrors.length > 0) {
+        setError(validationErrors.join(', '));
+        return null;
+      }
+
+      const response = await DiseaseApi.predictSingleDisease(disease, features);
+      if (response.error) {
+        setError(response.error);
+        return null;
+      }
+
+      return response.data;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Prediction failed';
+      setError(errorMessage);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return {
+    predict,
+    predictSingle,
+    isLoading,
+    error,
+    lastPrediction,
+    clearError: () => setError(null),
+  };
+}
+
+// Export API base URL for debugging
+export { API_BASE_URL };

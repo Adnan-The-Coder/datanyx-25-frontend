@@ -6,7 +6,7 @@ The DataNyx Health Dashboard has been successfully integrated with the productio
 
 ## Production API Details
 
-- **Base URL**: `http://python-fast-api-datanyx.eba-f3wni6xk.ap-south-1.elasticbeanstalk.com`
+- **Base URL**: `https://python-fast-api-datanyx.eba-f3wni6xk.ap-south-1.elasticbeanstalk.com`
 - **Framework**: FastAPI
 - **Deployment**: AWS Elastic Beanstalk
 - **Machine Learning**: 7 disease prediction models using Random Forest

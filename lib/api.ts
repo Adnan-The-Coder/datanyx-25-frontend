@@ -6,7 +6,7 @@
 import { useState, useEffect } from 'react';
 
 // Production API Base URL
-const API_BASE_URL = 'http://python-fast-api-datanyx.eba-f3wni6xk.ap-south-1.elasticbeanstalk.com';
+const API_BASE_URL = 'https://python-fast-api-datanyx.eba-f3wni6xk.ap-south-1.elasticbeanstalk.com';
 
 // Types for API responses
 export interface ApiResponse<T> {
